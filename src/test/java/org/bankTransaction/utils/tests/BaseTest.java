@@ -8,9 +8,7 @@ import io.restassured.specification.RequestSpecification;
 import org.bankTransaction.pojo.User;
 import org.bankTransaction.reporting.Reporter;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Locale;
+import java.util.*;
 
 import static io.restassured.RestAssured.given;
 
@@ -132,5 +130,13 @@ public class BaseTest {
         user.setTelephone(faker.phoneNumber().cellPhone());
 
         return updateTheUser(endpoint, user);
+    }
+
+    protected boolean verifyEmailIfDuplicated(String endpoint){
+        final List<String> EmailsOfUsers = new ArrayList<>();
+        getAllTheUsers(endpoint).forEach(user -> {EmailsOfUsers.add(user.getEmail());
+        });
+        Set<String> userSet = new HashSet<>(EmailsOfUsers);
+        return userSet.size() == getAllTheUsers(endpoint).size();
     }
 }
