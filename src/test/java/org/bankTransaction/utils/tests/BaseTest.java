@@ -1,5 +1,6 @@
 package org.bankTransaction.utils.tests;
 
+import com.github.javafaker.Faker;
 import io.restassured.RestAssured;
 import io.restassured.path.json.JsonPath;
 import io.restassured.response.Response;
@@ -9,6 +10,7 @@ import org.bankTransaction.reporting.Reporter;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 
 import static io.restassured.RestAssured.given;
 
@@ -44,7 +46,7 @@ public class BaseTest {
     }
 
     protected int updateTheUser(String endpoint, User user){
-        Response response = given().contentType("application/json").when().put(endpoint + "" + user.getId());
+        Response response = given().contentType("application/json").when().put(endpoint + "/" + user.getId());
         return response.getStatusCode();
     }
 
@@ -53,8 +55,65 @@ public class BaseTest {
         return response.getStatusCode();
     }
 
-    
+    protected List<User> creationOfUsersRandomly(int usersAmount){
+        List<User> users = new ArrayList<>();
+        Faker faker = Faker.instance(new Locale("en-US"));
 
+        for (double i = 0; i < usersAmount; i++) {
+            users.add(new User(
+               faker.name().firstName(),
+               faker.name().lastName(),
+               faker.number().numberBetween(0, 10000),
+               faker.number().randomDouble(2, 100000, 100000000) ,
+               faker.options().option("withdrawal", "payment", "invoice", "deposit"),
+               faker.internet().emailAddress(),
+               faker.random().nextBoolean(),
+               faker.country().name(),
+               faker.phoneNumber().cellPhone()
+            ));
+        }
+        String emailDuplication = faker.internet().emailAddress();
+        users.get(0).setEmail(emailDuplication);
+        users.get(usersAmount - 1).setEmail(emailDuplication);
+        return users;
+    }
+
+    protected boolean createUsersForRandomUsers(String endpoint, int usersAmount) {
+        List<User> users = creationOfUsersRandomly(usersAmount);
+        List<Boolean> theCreatedUsersForRandomStatus = new ArrayList<>();
+
+        for (int i = 0; i < users.size(); i++) {
+            boolean emailExist = false;
+            for (int j = 0; j < users.size() && !emailExist; j++) {
+                if (users.get(i).getEmail().equals(users.get(j).getEmail()) && i < j) {
+                    Reporter.info("This email " + users.get(j).getEmail() + "is duplicated. The User wont be created");
+                    emailExist = true;
+                }
+            }
+            if (!emailExist) {
+                theCreatedUsersForRandomStatus.add(createTheUser(endpoint, users.get(i)) == 201);
+            }
+        }
+
+        return !theCreatedUsersForRandomStatus.contains(false);
+    }
+
+    protected boolean deleteAllTheUsers(String endpoint){
+        List<Boolean> deletedUserStatus = new ArrayList<>();
+        List<Integer> status = new ArrayList<>();
+        List<User> users = getAllTheUsers(endpoint);
+        if (users.size() > 0){
+            for (int i = 0; i < users.size(); i++){
+                status.add(deleteTheUser(endpoint, users.get(i)));
+                deletedUserStatus.add(status.get(i) == 200);
+                if (status.get(i) != 200){
+                    Reporter.error("Cant delete user with id " + users.get(i).getId() + "- Http Response Code: " + status.get(i));
+
+                }
+            }
+        }
+        return !deletedUserStatus.contains(false);
+    }
 
 
 }
