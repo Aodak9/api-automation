@@ -46,7 +46,7 @@ public class BaseTest {
     }
 
     protected int updateTheUser(String endpoint, User user){
-        Response response = given().contentType("application/json").when().put(endpoint + "/" + user.getId());
+        Response response = given().contentType("application/json").body(user).when().put(endpoint + "/" + user.getId());
         return response.getStatusCode();
     }
 
@@ -54,6 +54,8 @@ public class BaseTest {
         Response response = given().contentType("application/json").when().delete(endpoint + "/" + user.getId());
         return response.getStatusCode();
     }
+
+
 
     protected List<User> creationOfUsersRandomly(int usersAmount){
         List<User> users = new ArrayList<>();
@@ -115,5 +117,20 @@ public class BaseTest {
         return !deletedUserStatus.contains(false);
     }
 
+    protected int updateUserForRandom(String endpoint, int userId){
+        User user = getAllTheUsers(endpoint).get(userId - 1);
+        Faker faker = Faker.instance(new Locale("en-US"));
 
+        user.setName(faker.name().firstName());
+        user.setLastName(faker.name().lastName());
+        user.setAccountNumber(faker.number().numberBetween(0, 10000));
+        user.setAmount(faker.number().randomDouble(2, 100000, 100000000));
+        user.setTransactionType(faker.options().option("withdrawal", "payment", "invoice", "deposit"));
+        user.setEmail(faker.internet().emailAddress());
+        user.setActive(faker.random().nextBoolean());
+        user.setCountry(faker.country().name());
+        user.setTelephone(faker.phoneNumber().cellPhone());
+
+        return updateTheUser(endpoint, user);
+    }
 }
