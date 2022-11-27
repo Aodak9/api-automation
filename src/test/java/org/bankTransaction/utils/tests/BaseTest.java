@@ -12,10 +12,19 @@ import java.util.*;
 
 import static io.restassured.RestAssured.given;
 
+/**
+ * Base class which is the father class for the test classes
+ *
+ */
 public class BaseTest {
 
     protected int getUsersStatus;
 
+    /**
+     * method to get all the users that weve given from endpoint and put them on list as objects from the POJO - user {@link org.bankTransaction.pojo.User}.
+     * @param endpoint String
+     * @return List of {@link org.bankTransaction.pojo.User} from the given endpoint
+     */
     protected List<User> getAllTheUsers(String endpoint){
         RestAssured.baseURI = endpoint;
         RequestSpecification requestSpecification = given();
@@ -33,28 +42,55 @@ public class BaseTest {
         return allUsers;
     }
 
+    /**
+     * method to get all the user status code from the HTTP Response, all of this after getting {@link org.bankTransaction.pojo.User} from the endpoint
+     * @param endpoint String
+     * @return Http Response Code for the GET request
+     */
     protected int getAllTheUsersStatus(String endpoint){
         getAllTheUsers(endpoint);
         return getUsersStatus;
     }
 
+    /**
+     * This method make a Post request to a POJO - user {@link org.bankTransaction.pojo.User} in the given endpoint, adding a new one.
+     * @param endpoint String
+     * @param user {@link org.bankTransaction.pojo.User}
+     * @return HTTP status code Response respectively for Post request
+     */
     protected int createTheUser(String endpoint, User user){
         Response response = given().contentType("application/json").body(user).when().post(endpoint);
         return response.getStatusCode();
     }
 
+    /**
+     * This method make a Put request to a POJO - user{@link org.bankTransaction.pojo.User} in the given endpoint.
+     * @param endpoint String
+     * @param user {@link org.bankTransaction.pojo.User}
+     * @return HTTP status code Response respectively for Put request
+     */
     protected int updateTheUser(String endpoint, User user){
         Response response = given().contentType("application/json").body(user).when().put(endpoint + "/" + user.getId());
         return response.getStatusCode();
     }
 
+    /**
+     * this method proceed to make a delete request to a POJO - user {@link org.bankTransaction.pojo.User} in the given endpoint.
+     * @param endpoint String
+     * @param user {@link org.bankTransaction.pojo.User}
+     * @return HTTP status code Response respectively for delete request
+     */
     protected int deleteTheUser(String endpoint, User user){
         Response response = given().contentType("application/json").when().delete(endpoint + "/" + user.getId());
         return response.getStatusCode();
     }
 
 
-
+    /**
+     * This method make an amount of POJO - user {@link org.bankTransaction.pojo.User} with random data created with Faker.
+     * @param usersAmount int
+     * @return List of created   {@link org.bankTransaction.pojo.User}
+     */
     protected List<User> creationOfUsersRandomly(int usersAmount){
         List<User> users = new ArrayList<>();
         Faker faker = Faker.instance(new Locale("en-US"));
@@ -78,6 +114,12 @@ public class BaseTest {
         return users;
     }
 
+    /**
+     * This method add an amount of random POJO - user {@link org.bankTransaction.pojo.User} to a given endpoint.
+     * @param endpoint String
+     * @param usersAmount int
+     * @return true if all Post request were successfully created (Http status code Response: 200), otherwise false
+     */
     protected boolean createUsersForRandomUsers(String endpoint, int usersAmount) {
         List<User> users = creationOfUsersRandomly(usersAmount);
         List<Boolean> theCreatedUsersForRandomStatus = new ArrayList<>();
@@ -98,6 +140,11 @@ public class BaseTest {
         return !theCreatedUsersForRandomStatus.contains(false);
     }
 
+    /**
+     * This method make a delete request to all the POJO - user {@link org.bankTransaction.pojo.User} in a given endpoint.
+     * @param endpoint String
+     * @return true if all Delete request were successfully done (Http Response Code: 200), otherwise false
+     */
     protected boolean deleteAllTheUsers(String endpoint){
         List<Boolean> deletedUserStatus = new ArrayList<>();
         List<Integer> status = new ArrayList<>();
@@ -115,6 +162,12 @@ public class BaseTest {
         return !deletedUserStatus.contains(false);
     }
 
+    /**
+     * This method makes an update of the info in a specific POJO - user {@link org.bankTransaction.pojo.User} in a given endpoint.
+     * @param endpoint String
+     * @param userId int
+     * @return Http Response Code of the PUT request
+     */
     protected int updateUserForRandom(String endpoint, int userId){
         User user = getAllTheUsers(endpoint).get(userId - 1);
         Faker faker = Faker.instance(new Locale("en-US"));
@@ -132,6 +185,11 @@ public class BaseTest {
         return updateTheUser(endpoint, user);
     }
 
+    /**
+     * This method is to verify is there's an Email duplicated by the given endpoint.
+     * @param endpoint String
+     * @return true if there are no duplicate emails, otherwise false.
+     */
     protected boolean verifyEmailIfDuplicated(String endpoint){
         final List<String> EmailsOfUsers = new ArrayList<>();
         getAllTheUsers(endpoint).forEach(user -> {EmailsOfUsers.add(user.getEmail());

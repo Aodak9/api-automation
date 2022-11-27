@@ -6,8 +6,15 @@ import org.testng.Assert;
 import org.testng.annotations.Parameters;
 import org.testng.annotations.Test;
 
+/**
+ * Test class to check Empty Endpoint Test, extended from {@link org.bankTransaction.utils.tests.BaseTest}
+ */
 public class EmptyEndpointTest extends BaseTest {
 
+    /**
+     * This test check the endpoint is empty and proceed to delete previous data in case is needed, verifies the status code of the HTTP
+     * @param endpoint String
+     */
     @Parameters({"endpoint"})
     @Test
     public void emptyEndpointTest(String endpoint){
